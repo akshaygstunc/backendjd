@@ -1,0 +1,275 @@
+{
+    "status": true,
+    "message": "Data Fetched Successfully",
+    "data": {
+        "formSchema": {
+            "registrationFields": [
+                {
+                    "field_name": "firstName-1741327708832",
+                    "label": "First Name (Default)"
+                },
+                {
+                    "field_name": "lastName-1741327708832",
+                    "label": "Last Name (Default)"
+                },
+                {
+                    "field_name": "emailDef-1741327708832",
+                    "label": "Email (Default)"
+                },
+                {
+                    "field_name": "countryDef-1741327708832",
+                    "label": "Country (Default)"
+                },
+                {
+                    "field_name": "label-1741327795730",
+                    "label": "Label Text"
+                },
+                {
+                    "field_name": "text-1741327843834",
+                    "label": "linkedin link"
+                }
+            ],
+            "entryFields": [
+                {
+                    "field_name": "category-1741327714133",
+                    "label": "Category"
+                },
+                {
+                    "field_name": "title-1741327714133",
+                    "label": "Title of the Entry"
+                },
+                {
+                    "field_name": "email-1741327714133",
+                    "label": "Email"
+                },
+                {
+                    "field_name": "tel-1741327714134",
+                    "label": "Phone Number"
+                },
+                {
+                    "field_name": "designation-1741327714134",
+                    "label": "Designation"
+                },
+                {
+                    "field_name": "name-1741327714133",
+                    "label": "Name"
+                },
+                {
+                    "field_name": "text-1741327889858",
+                    "label": "Linkedin"
+                }
+            ]
+        },
+        "mergedData": [
+            {
+                "submission_id": "AF-0001",
+                "registrationData": {
+                    "registrationFormId": 94,
+                    "eventId": 137,
+                    "created_by": 17,
+                    "created_at": "2025-03-07T06:36:35.000Z",
+                    "updated_at": "2025-03-07T06:36:35.000Z",
+                    "role": "user",
+                    "fields": [
+                        {
+                            "registrationDataId": 141,
+                            "firstName-1741327708832": "Antarjeet "
+                        },
+                        {
+                            "registrationDataId": 142,
+                            "lastName-1741327708832": "Singh "
+                        },
+                        {
+                            "registrationDataId": 143,
+                            "emailDef-1741327708832": "antarjeetsk@gmail.com"
+                        },
+                        {
+                            "registrationDataId": 144,
+                            "countryDef-1741327708832": "Germany"
+                        },
+                        {
+                            "registrationDataId": 145,
+                            "text-1741327843834": "hbdjhsjvd.com"
+                        }
+                    ]
+                },
+                "submissionData": {
+                    "entryFormId": 50,
+                    "eventId": 137,
+                    "created_by": 17,
+                    "submission_id": "AF-0001",
+                    "role": "user",
+                    "created_at": "2025-03-07T06:37:29.000Z",
+                    "updated_at": "2025-03-07T06:37:29.000Z",
+                    "fields": [
+                        {
+                            "entryDataId": 112,
+                            "title-1741327714133": "It"
+                        },
+                        {
+                            "entryDataId": 113,
+                            "email-1741327714133": "antarjeetsk@gmail.com"
+                        },
+                        {
+                            "entryDataId": 114,
+                            "tel-1741327714134": "08264553084"
+                        },
+                        {
+                            "entryDataId": 115,
+                            "designation-1741327714134": "kndkn"
+                        },
+                        {
+                            "entryDataId": 116,
+                            "name-1741327714133": "Antarjeet Singh Kainth"
+                        },
+                        {
+                            "entryDataId": 117,
+                            "text-1741327889858": "nothing"
+                        },
+                        {
+                            "entryDataId": 118,
+                            "Category": "test1"
+                        }
+                    ]
+                }
+            },
+            {
+                "submission_id": "AF@@@@-0003",
+                "registrationData": {
+                    "registrationFormId": 94,
+                    "eventId": 137,
+                    "created_by": 18,
+                    "created_at": "2025-03-07T13:55:15.000Z",
+                    "updated_at": "2025-03-07T13:55:15.000Z",
+                    "role": "user",
+                    "fields": [
+                        {
+                            "registrationDataId": 146,
+                            "firstName-1741327708832": "ajay"
+                        },
+                        {
+                            "registrationDataId": 147,
+                            "lastName-1741327708832": "Kainth"
+                        },
+                        {
+                            "registrationDataId": 148,
+                            "emailDef-1741327708832": "ajaysk@gmail.com"
+                        },
+                        {
+                            "registrationDataId": 149,
+                            "countryDef-1741327708832": "India"
+                        },
+                        {
+                            "registrationDataId": 150,
+                            "text-1741327843834": "nothing but just random"
+                        }
+                    ]
+                },
+                "submissionData": {
+                    "entryFormId": 50,
+                    "eventId": 137,
+                    "created_by": 17,
+                    "submission_id": "AF@@@@-0002",
+                    "role": "user",
+                    "created_at": "2025-03-07T13:55:52.000Z",
+                    "updated_at": "2025-03-07T13:55:52.000Z",
+                    "fields": [
+                        {
+                            "entryDataId": 119,
+                            "title-1741327714133": "nothing"
+                        },
+                        {
+                            "entryDataId": 120,
+                            "email-1741327714133": "hi@gmail.com"
+                        },
+                        {
+                            "entryDataId": 121,
+                            "tel-1741327714134": "67676712345"
+                        },
+                        {
+                            "entryDataId": 122,
+                            "designation-1741327714134": "nothing"
+                        },
+                        {
+                            "entryDataId": 123,
+                            "name-1741327714133": "hihi"
+                        },
+                        {
+                            "entryDataId": 124,
+                            "Category": "test2"
+                        }
+                    ]
+                }
+            },
+            {
+                "submission_id": "AF@@@@-0003",
+                "registrationData": {
+                    "registrationFormId": 94,
+                    "eventId": 137,
+                    "created_by": 18,
+                    "created_at": "2025-03-07T13:55:15.000Z",
+                    "updated_at": "2025-03-07T13:55:15.000Z",
+                    "role": "user",
+                    "fields": [
+                        {
+                            "registrationDataId": 151,
+                            "firstName-1741327708832": "RAkesh"
+                        },
+                        {
+                            "registrationDataId": 152,
+                            "lastName-1741327708832": "yadav"
+                        },
+                        {
+                            "registrationDataId": 153,
+                            "emailDef-1741327708832": "rakeshbaby@gmail.com"
+                        },
+                        {
+                            "registrationDataId": 154,
+                            "countryDef-1741327708832": "India"
+                        },
+                        {
+                            "registrationDataId": 155,
+                            "text-1741327843834": "none"
+                        }
+                    ]
+                },
+                "submissionData": {
+                    "entryFormId": 50,
+                    "eventId": 137,
+                    "created_by": 18,
+                    "submission_id": "AF@@@@-0003",
+                    "role": "user",
+                    "created_at": "2025-03-07T13:55:52.000Z",
+                    "updated_at": "2025-03-07T13:55:52.000Z",
+                    "fields": [
+                        {
+                            "entryDataId": 125,
+                            "title-1741327714133": "handsome"
+                        },
+                        {
+                            "entryDataId": 126,
+                            "email-1741327714133": "rakeshbaby@gmail.com"
+                        },
+                        {
+                            "entryDataId": 127,
+                            "tel-1741327714134": "8282865652"
+                        },
+                        {
+                            "entryDataId": 128,
+                            "designation-1741327714134": "none"
+                        },
+                        {
+                            "entryDataId": 129,
+                            "name-1741327714133": "rakesh"
+                        },
+                        {
+                            "entryDataId": 130,
+                            "Category": "test2"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "totalCount": 2
+}

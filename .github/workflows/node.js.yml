@@ -1,0 +1,33 @@
+---
+name: Node.js CI
+on:
+  push:
+    branches:
+      - production
+  pull_request:
+    branches:
+      - production
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@master
+        name: executing remote ssh commands using password
+        with:
+          host: ${{secrets.SSH_HOST}}
+          password: ${{secrets.SSH_PASSWORD}}
+          username: ${{secrets.SSH_USERNAME}}
+          port: ${{secrets.SSH_PORT}}
+          script: |
+            cd /var/www/phanomprofes_usr/data/www/judgify-api.phanomprofessionals.com/judgify_backend
+                source /var/www/phanomprofes_usr/data/nvm/nvm.sh
+                nvm install 18
+               
+                git pull origin production
+                npm install --force
+                npm install pm2
+                npm install pm2 -g
+                pm2 stop app.js
+                pm2 start app.js
+
+                pm2 restart app.js
