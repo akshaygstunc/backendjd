@@ -3,7 +3,7 @@ import crypto from "crypto";
 
 const algorithm = "aes-256-cbc";
 const key = crypto
-  .createHash("sha256")
+  .createHash("sha256")     
   .update(process.env.PAYMENT_MIDDLEWARE_KEY)
   .digest(); // 32 bytes for AES-256
 console.log("Key length:", process.env.PAYMENT_MIDDLEWARE_KEY); // Should be 32 bytes
@@ -14,7 +14,7 @@ export const encrypt = (text) => {
   encrypted += cipher.final("hex");
   return iv.toString("hex") + ":" + encrypted;
 };
-
+   
 export const decrypt = (encryptedText) => {
   const [ivHex, encrypted] = encryptedText.split(":");
   const iv = Buffer.from(ivHex, "hex");

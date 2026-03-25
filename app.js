@@ -15,7 +15,7 @@ import { Awardsget } from "./controller/adminController.js";
 import paymentRoutes from './routes/paymnetRoutes.js'
 import connection from "./database/connection.js";
 import uploadRoutes from "./aws/uploadRoutes.js";
-
+import templateRoutes from "./routes/template.routes.js"
 const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -154,6 +154,14 @@ app.use('/api/user', user)
 app.use('/api/judge', judge)
 
 app.use("/api/payments", paymentRoutes);
+
+
+
+
+//--------template routes///////
+
+app.use("/api/templates", templateRoutes);
+
 
 app.get('/event/:uniqueUrlKey', async (req, res) => {
   const { uniqueUrlKey } = req.params;
