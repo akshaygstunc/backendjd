@@ -1,7 +1,48 @@
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
+import nodemailer from "nodemailer";
+import { getTemplateByName } from "../service/template.service.js";
 
 dotenv.config();
+
+// 🔥 replace variables
+function replaceVariables(template, data) {
+  return template.replace(/{{(.*?)}}/g, (_, key) => {
+    return data[key.trim()] || "";
+  });
+}
+
+// 🔥 ONLY BUTTON FIX
+function fixButtons(html, dynamicLink) {
+  return html.replace(
+    /<span[^>]*background-color:\s*([^;"]+)[^>]*>(.*?)<\/span>/gi,
+    (match, bgColor, text) => {
+      
+      let link = dynamicLink;
+
+      if (text.toLowerCase().includes("contact")) {
+        link = "mailto:support@awardsuite.in";
+      }
+
+      return `
+      <a href="${link}"
+         style="
+           background:${bgColor};
+           color:#ffffff;
+           padding:12px 22px;
+           text-decoration:none;
+           border-radius:8px;
+           display:inline-block;
+           font-weight:600;
+           margin:6px 8px;
+           border:1px solid rgba(0,0,0,0.1);
+           box-shadow:0 2px 6px rgba(0,0,0,0.15);
+         ">
+         ${text.trim()}
+      </a>
+      `;
+    }
+  );
+}
 
 async function sendGmailAssignJudge(
   first_name,
@@ -17,112 +58,124 @@ async function sendGmailAssignJudge(
   organizer_last_name,
   eventId,
   alpharoundid
-)
-
-{
-  console.log("Sending email for eventId:", eventId);
-  console.log("Sending email for roundId:", alpharoundid);
-
+) {
   try {
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
-    const host = process.env.SMTP_HOST;
-    const port = process.env.SMTP_PORT || 587;
-    const secure = process.env.SMTP_SECURE === 'true';
-
     const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure,
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT || 587,
+      secure: process.env.SMTP_SECURE === "true",
       auth: {
-        user,
-        pass,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     });
 
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Judge Invitation</title>
-          <style>
-              body {
-                  font-family: Arial, sans-serif;
-                  background-color: #f4f4f4;
-                  margin: 0;
-                  padding: 0;
-              }
-                  h1{
-                  color: #333;
-              }
-              .container {
-                  max-width: 600px;
-                  margin: 0 auto;
-                  padding: 20px;
-                  background-color: #fff;
-                  border: 1px solid #ccc;
-                  border-radius: 10px;
-              }
-              .message {
-                  margin-bottom: 15px;
-                  color: #333;
-              }
-              .cta-button {
-              display: inline-block;
-              background-color: #c32728;
-              color: white !important;
-              padding: 10px 20px;
-              text-align: center;
-              border-radius: 5px;
-              text-decoration: none;
-              font-weight: bold;
-          }
+    // 🔥 GET TEMPLATE FROM DB
+    let template = await getTemplateByName(
+      "Judge Invitation",
+      eventId
+    );
 
-          .cta-button:hover,
-          .cta-button:visited,
-          .cta-button:focus,
-          .cta-button:active {
-              background-color: #c32728;
-              color: white !important;
-          }
+    // 🔥 FALLBACK (FIRST TIME)
+    if (!template) {
+      template = {
+        subject: "You Are Assigned As Jury for {{event.name}}",
+        content: `
+          <p>Dear {{judge.firstname}} {{judge.lastname}},</p>
 
-          </style>
-      </head>
-      <body>
-          <div class="container">
-              <div class="header">
-                  <img src="https://judgify-api.phanomprofessionals.com/uploads/${event_logo}" alt="${event_name} Logo" style="max-width: 100%; height: auto;">
-                  <h1>${event_name}</h1>
-              </div>
-              <p class="message">Dear ${first_name} ${last_name},</p>
-              <p class="message">We are excited to invite you to join the jury panel for <strong>${event_name}</strong>.</p>
-              <p class="message">Below is the access link to the judging portal, where you can begin scoring entries for <strong>${round_no}</strong>.</p>
-              <p class="message">Please note that Judging for <strong> ${round_no}</strong> will close on <strong>${end_date} at ${end_time}</strong>.</p>
-              <p class="message">We kindly request you to confirm your participation and provide your verdict as a jury member by clicking below:</p>
-                  <a href="https://awardsuite.in/jury-dashboard?judgemail=${email}&eventId=${eventId}&roundId=${alpharoundid}" class="cta-button">Judging Portal</a>
-              <p class="message">Feel free to reach out to ${organizer_first_name} ${organizer_last_name} for any inquiries.</p>
-              <p class="message">Best Regards,</p>
-              <p class="message"><strong>${organizer_first_name} ${organizer_last_name}</strong><br>
-                  Awards Suite - Awards, Simplified. Excellence, Delivered.
-              </p>
-          </div>
-      </body>
-      </html>
-    `;
+          <p>You are invited to judge <b>{{event.name}}</b>.</p>
 
-    const mailOptions = {
-      from: user,
-      to: email,
-      subject: `You Are Assigned As Jury for ${event_name}`,
-      html: htmlContent,
+          <p>Round: <b>{{round.no}}</b></p>
+          <p>Deadline: <b>{{round.end_date}} {{round.end_time}}</b></p>
+
+          <span style="background-color: rgb(76, 175, 80); color:white;">
+            Judging Portal
+          </span>
+
+          <p>Best Regards,<br/>
+          {{organizer.firstname}} {{organizer.lastname}}</p>
+        `,
+      };
+    }
+
+    // 🔥 VARIABLES
+    const variableData = {
+      "judge.firstname": first_name,
+      "judge.lastname": last_name,
+
+      "event.name": event_name,
+      "event.logo": `https://profession-mobility-included-advertisement.trycloudflare.com/uploads/${event_logo}`,
+
+      "round.no": round_no,
+      "round.end_date": end_date,
+      "round.end_time": end_time,
+
+      "organizer.firstname": organizer_first_name,
+      "organizer.lastname": organizer_last_name,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent to ' + email + ': ' + info.response);
+    // 🔥 BUTTON LINK
+    const dynamicLink = `https://profession-mobility-included-advertisement.trycloudflare.com/jury-dashboard?judgemail=${email}&eventId=${eventId}&roundId=${alpharoundid}`;
+
+    // 🔥 PROCESS CONTENT
+    let processedContent = replaceVariables(template.content, variableData);
+
+    // ✅ ONLY BUTTON FIX APPLY
+    processedContent = fixButtons(processedContent, dynamicLink);
+
+    const finalSubject = replaceVariables(template.subject, variableData);
+
+    // 🔥 SAME GLOBAL EMAIL DESIGN
+    const finalHtml = `
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
+
+  <div style="padding:40px 0;">
+    
+    <div style="max-width:650px;margin:auto;background:#fff;border-radius:12px;overflow:hidden;">
+      
+      <!-- HEADER -->
+      <div style="height:120px;background:linear-gradient(to right,#2ec4b6,#66bb2a);"></div>
+
+      <!-- LOGO -->
+      <div style="text-align:center;margin-top:-50px;">
+        <img src="${variableData["event.logo"]}"
+             style="width:90px;height:90px;border-radius:50%;background:#fff;padding:5px;" />
+      </div>
+
+      <!-- CONTENT -->
+      <div style="padding:30px;">
+        
+        <h2 style="text-align:center;">
+          ${variableData["event.name"]}
+        </h2>
+
+        ${processedContent}
+
+      
+        
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
+`;
+
+    await transporter.sendMail({
+      from: `"${process.env.SMTP_FROM_NAME || "Awards Nomination"}" <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: finalSubject,
+      html: finalHtml,
+    });
+
+    console.log("Judge Assign Email sent ✅");
+
   } catch (error) {
-    console.error('Error sending email to ' + email + ':', error);
+    console.error("Judge Assign Email error ❌:", error);
   }
 }
 

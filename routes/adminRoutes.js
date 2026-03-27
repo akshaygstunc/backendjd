@@ -131,6 +131,7 @@ import {
 import authenticate from '../middleware/authentication.js'
 import upload from '../middleware/multer.js'
 import { getDraftEntry } from "../service/adminService.js"
+import { getTemplateByNameController } from "../controller/template.controller.js"
 
 const router = express.Router()
 
@@ -367,6 +368,7 @@ router.post('/topFilterReport', sheet)
 
 router.get('/getentry',authenticate,getDraftEntry)
 
+router.get("/by-name", getTemplateByNameController);
 
 export default router;
 // =======

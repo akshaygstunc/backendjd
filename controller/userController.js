@@ -34,6 +34,7 @@ import sendGmailotp from "../mails/sendOtp.js"
 import otpGenerator from "otp-generator"
 import sendGmailAssign from "../mails/createUsermail.js"
 import connection from "../database/connection.js"
+import sendPendingPaymentaaaaaa from "../mails/pending.js"
 
 
 export const usercreate = async (req, res) => {
@@ -618,7 +619,7 @@ export const GettotalScore = async (req, res) => {
   export const sendPendingPayment = async (req, res) => {
     try {
       const { eventid,userId } = req.query;
-  
+       console.log("eventid",eventid)
       // Fetch order details
       const order = await getPendingOrderDetails(eventid,userId);
       if (!order) {
@@ -626,7 +627,7 @@ export const GettotalScore = async (req, res) => {
       }
   
       // Send email
-      await sendPendingPaymentEmail(order);
+      await sendPendingPaymentaaaaaa(order,eventid,userId);
   
       res.status(200).json({ success: true, message: "Pending payment email sent successfully." });
     } catch (error) {

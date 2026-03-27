@@ -71,7 +71,7 @@ async function sendGmailotp(email, otp) {
         `;
 
     const mailOptions = {
-      from: user,
+      from: `"Awards Nomination" <${user}>`,
       to: email,
       subject: "Your OTP Code for Verification",
       html: htmlContent,

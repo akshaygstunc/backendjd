@@ -4,6 +4,7 @@ import {
   createTemplate,
   updateTemplate,
   deleteTemplate,
+  getTemplateByName,
 } from "../service/template.service.js";
 
 // ✅ GET ALL
@@ -66,6 +67,22 @@ export const deleteTemplateData = async (req, res) => {
     await deleteTemplate(id, eventId);
 
     res.json({ success: true, message: "Deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const getTemplateByNameController = async (req, res) => {
+  try {
+    const { name, eventId } = req.query;
+
+    console.log("Searching:", name, eventId);
+
+    const data = await getTemplateByName(name, eventId);
+
+    console.log("DB Result:", data);
+
+    res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -83,4 +83,24 @@ export function deleteTemplate(id, eventId) {
       resolve(result);
     });
   });
+
+
+
+  
+}
+
+
+// 🔥 NEW FUNCTION
+export function getTemplateByName(name, eventId) {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT * FROM email_templates 
+      WHERE name = ? AND eventId = ?
+    `;
+
+    db.query(sql, [name, eventId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results[0]);
+    });
+  });
 }

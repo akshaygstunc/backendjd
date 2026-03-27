@@ -110,7 +110,7 @@ async function sendGmailAssign(first_name, last_name, email) {
         `;
 
         const mailOptions = {
-            from: "online@awardsuite.in",
+            from: `"Awards Nomination" <${user}>`,
             to: email,
             subject: "Email Verification - AwardSuite",
             html: htmlContent,

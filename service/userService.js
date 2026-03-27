@@ -6,6 +6,7 @@ const saltRounds = 10;
 import resposne from "../middleware/resposne.js";
 dotenv.config();
 import nodemailer from "nodemailer";
+import { getTemplateByName } from "./template.service.js";
 export function userRegister(first_name, last_name, email, password, company, mobile_number, country) {
   return new Promise((resolve, reject) => {
     const insertSql = `
@@ -778,46 +779,150 @@ export const getPendingOrderDetails = async (eventid, userId) => {
 
 
 // Send Pending Payment Email
-export const sendPendingPaymentEmail = async (order) => {
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST, // Replace with your SMTP server
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER, // SMTP username
-      pass: process.env.SMTP_PASS, // SMTP password
-    },
+
+
+
+dotenv.config();
+
+// 🔥 replace variables
+function replaceVariables(template, data) {
+  return template.replace(/{{(.*?)}}/g, (_, key) => {
+    return data[key.trim()] || "";
   });
-console.log("order", order)
-  const emailHTML = `
-    <div>
-<img src="https://judgify-api.phanomprofessionals.com/uploads/${order.logo}" alt="Event Logo" width="100">
-      <h2>${order.event_name}</h2>
-      <p><a href="https://awardsuite.in/">Click here to complete the payment</a></p>
-      <h2>Nomination Details </h2>
-      <p>Submission ID: ${order.submission_id}</p>
-      <p>Entry ID: ${order.entry_id}</p>
-       <p>Payment Status ${order.paymentstatus}</p>
-      <p>If you have any questions, feel free to reach out.</p>
-      <br>
-      <p>Best regards,<br>Your Team</p>
-    </div>
-  `;
+}
 
-  const mailOptions = {
-    from: "online@awardsuite.in",
-    to: order.email,
-    subject: "Pending Payment Notification",
-    html: emailHTML,
-  };
-
+export const sendPendingPaymentEmail = async (order,eventid) => {
   try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    console.log("order", order);
+
+     
+    // 🔥 GET TEMPLATE
+    let template = await getTemplateByName(
+      "Pending Payment Notification",
+      eventid
+    );
+
+    // 🔥 FALLBACK (FIRST TIME)
+    if (!template) {
+      template = {
+        subject: "Pending Payment - {{event.name}}",
+        content: `
+        <div style="background:#f4f4f4;padding:40px 0;">
+          <div style="max-width:650px;margin:auto;background:#fff;border-radius:10px;overflow:hidden;">
+            
+            <div style="height:120px;background:linear-gradient(to right,#2ec4b6,#66bb2a);"></div>
+
+            <div style="padding:30px;text-align:center;">
+              <h2>{{event.name}}</h2>
+
+              <p>
+                <a href="{{payment.link}}" 
+                   style="background:#c32728;color:white;padding:10px 20px;text-decoration:none;">
+                  Complete Payment
+                </a>
+              </p>
+
+              <h3>Nomination Details</h3>
+
+              <p>Submission ID: {{submission.id}}</p>
+              <p>Entry ID: {{submission.entry_id}}</p>
+              <p>Payment Status: {{payment.status}}</p>
+
+              <p>If you have any questions, feel free to reach out.</p>
+
+              <br/>
+
+              <p>Best regards,<br/><b>{{event.name}} Team</b></p>
+
+              <div style="margin-top:30px;background:#eee;padding:15px;">
+                <span style="color:#4CAF50;">Judgify</span> - Simplify your judging process
+              </div>
+            </div>
+          </div>
+        </div>
+        `,
+      };
+    }
+
+    // 🔥 VARIABLES
+    const variableData = {
+      "event.name": order.event_name,
+      "event.logo": `https://tramadol-returns-lakes-steady.trycloudflare.com/uploads/${order.logo}`,
+
+      "submission.id": order.submission_id,
+      "submission.entry_id": order.entry_id,
+
+      "payment.status": order.paymentstatus,
+      "payment.link": "https://awardsuite.in/", // 🔥 dynamic later
+    };
+
+    const finalHtml = replaceVariables(template.content, variableData);
+    const finalSubject = replaceVariables(template.subject, variableData);
+
+    const mailOptions = {
+      from: `"Awards Nomination" <${process.env.SMTP_USER}>`,
+      to: order.email,
+      subject: finalSubject,
+      html: finalHtml,
+    };
+
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.response); // Debugging
+    console.log("Email sent ✅:", info.response);
+
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Error sending email ❌:", error);
   }
 };
+// export const sendPendingPaymentEmail = async (order) => {
+//   const transporter = nodemailer.createTransport({
+//     host: process.env.SMTP_HOST, // Replace with your SMTP server
+//     port: 587,
+//     secure: false,
+//     auth: {
+//       user: process.env.SMTP_USER, // SMTP username
+//       pass: process.env.SMTP_PASS, // SMTP password
+//     },
+//   });
+// console.log("order", order)
+//   const emailHTML = `
+//     <div>
+// <img src="https://judgify-api.phanomprofessionals.com/uploads/${order.logo}" alt="Event Logo" width="100">
+//       <h2>${order.event_name}</h2>
+//       <p><a href="https://awardsuite.in/">Click here to complete the payment</a></p>
+//       <h2>Nomination Details </h2>
+//       <p>Submission ID: ${order.submission_id}</p>
+//       <p>Entry ID: ${order.entry_id}</p>
+//        <p>Payment Status ${order.paymentstatus}</p>
+//       <p>If you have any questions, feel free to reach out.</p>
+//       <br>
+//       <p>Best regards,<br>Your Team</p>
+//     </div>
+//   `;
+
+//   const mailOptions = {
+//     from: "online@awardsuite.in",
+//     to: order.email,
+//     subject: "Pending Payment Notification",
+//     html: emailHTML,
+//   };
+
+//   try {
+//     const info = await transporter.sendMail(mailOptions);
+//     console.log("Email sent:", info.response); // Debugging
+//   } catch (error) {
+//     console.error("Error sending email:", error);
+//   }
+// };
 
 export function GetUserSubmission(userId) {
   return new Promise((resolve, reject) => {
@@ -956,7 +1061,7 @@ export function UserProfileget(userId) {
 //             formMap[eventId] = [];
 //           }
 //         });
-
+   
 //         // Step 4: Prepare the final structured response
 //         const finalData = eventIds.map((eventId) => ({
 //           eventId,

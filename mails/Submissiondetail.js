@@ -1,7 +1,18 @@
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
+import { getTemplateByName } from "../service/template.service.js";
 
 dotenv.config();
+
+const user = process.env.SMTP_USER;
+const fromName = process.env.SMTP_FROM_NAME || "Awards Nomination";
+
+// 🔥 replace variables
+function replaceVariables(template, data) {
+  return template.replace(/{{(.*?)}}/g, (_, key) => {
+    return data[key.trim()] || "";
+  });
+}
 
 async function Submissiondetail(
   first_name,
@@ -21,70 +32,99 @@ async function Submissiondetail(
       },
     });
 
-    const submittedDate = new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
+    const submittedDate = new Date().toLocaleDateString("en-US");
 
-    const logoUrl = `https://judgify-api.phanomprofessionals.com/uploads/${event.logo}`;
     const emailadminget = event?.email;
 
-    // 🧹 Clean bcc: Remove userEmail if present
+    // 🔥 BCC CLEAN
     const bccList = [...new Set([emailadminget, ...additionalEmails])].filter(
       (email) => email && email !== userEmail
     );
 
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 0; }
-            .container { background-color: white; padding: 20px; max-width: 600px; margin: 20px auto; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-            .logo { max-width: 200px; margin-bottom: 20px; }
-            .cta-button { background-color: #c32728; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; }
-            .cta-button:hover { background-color: #9a2123; }
-            .footer { margin-top: 30px; font-size: 12px; color: #888; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-                  <img src="https://judgify-api.phanomprofessionals.com/uploads/${event.event_logo}" alt="${event.event_name} Logo" style="max-width: 100%; height: auto;">
-            <h2>${event.event_name}</h2>
-            <p>Your submission has been received.</p>
-            <p>Dear ${first_name} ${last_name},</p>
-            <p>We acknowledge receipt of your nomination made on <strong>${submittedDate}</strong>, which has been accepted for processing.</p>
-            <p>Kindly find your nomination details below:</p>
+    const eventId = event.id || event.event_id;
+
+    // 🔥 GET TEMPLATE FROM DB
+    let template = await getTemplateByName(
+      "Submission Details",
+      eventId
+    );
+
+    // 🔥 FALLBACK (FIRST TIME)
+    if (!template) {
+      template = {
+        subject: "Submission Successful - {{event.name}}",
+        content: `
+        <div style="background:#f4f4f4;padding:40px 0;">
+          <div style="max-width:650px;margin:auto;background:#fff;border-radius:10px;overflow:hidden;">
             
-<a href="https://awardsuite.in/submission"
-   style="background-color: #c32728; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
-   Click here to modify or revise your nomination
-</a>
-            <div class="footer">
-              <p>Best Regards,<br>${event.event_name} Team<br>Award – Suite your awards management</p>
+            <div style="height:120px;background:linear-gradient(to right,#2ec4b6,#66bb2a);"></div>
+
+            <div style="padding:30px;text-align:center;">
+              <h2>{{event.name}}</h2>
+
+              <p>Dear {{user.firstname}} {{user.lastname}},</p>
+
+              <p>Your submission has been received.</p>
+
+              <p>
+                We acknowledge your nomination submitted on 
+                <b>{{submission.date}}</b>.
+              </p>
+
+              <br/>
+
+              <a href="{{submission.link}}"
+                style="background:#c32728;color:white;padding:10px 20px;text-decoration:none;">
+                Modify or revise your nomination
+              </a>
+
+              <p style="margin-top:20px;">
+                Best Regards,<br/>
+                <b>{{event.name}} Team</b>
+              </p>
+
+              <div style="margin-top:30px;background:#eee;padding:15px;">
+                <span style="color:#4CAF50;">Judgify</span> - Simplify your judging process
+              </div>
             </div>
           </div>
-        </body>
-      </html>
-    `;
+        </div>
+        `,
+      };
+    }
+
+    // 🔥 VARIABLES
+    const variableData = {
+      "user.firstname": first_name,
+      "user.lastname": last_name,
+
+      "event.name": event.event_name,
+      "event.logo": `https://judgify-api.phanomprofessionals.com/uploads/${event.event_logo}`,
+
+      "submission.date": submittedDate,
+      "submission.link": "https://awardsuite.in/submission",
+    };
+
+    const finalHtml = replaceVariables(template.content, variableData);
+    const finalSubject = replaceVariables(template.subject, variableData);
 
     const mailOptions = {
-      from: "online@awardsuite.in",
-      to: userEmail, // main user only
-      bcc: bccList, // admin & additional, no duplicates
-      subject: `Submission Successful - ${event.event_name}`,
-      html: htmlContent,
-      text: `Dear ${first_name} ${last_name}, thank you for registering for ${event.event_name}. Visit: ${event.event_url}`,
+      from: `"${fromName}" <${user}>`,
+      to: userEmail,
+      bcc: bccList,
+      subject: finalSubject,
+      html: finalHtml,
+      text: `Submission successful for ${event.event_name}`,
     };
 
     console.log("📧 Sending email to:", userEmail);
-    console.log("📩 BCC to:", bccList);
+    console.log("📩 BCC:", bccList);
 
     const info = await transporter.sendMail(mailOptions);
     return info.response;
+
   } catch (error) {
-    console.error("Email sending error:", error);
+    console.error("Submission Email error ❌:", error);
     throw error;
   }
 }

@@ -1,125 +1,143 @@
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
+import nodemailer from "nodemailer";
+import { getTemplateByName } from "../service/template.service.js";
 
 dotenv.config();
+import db from "../database/connection.js";
 
-async function sendPendingPayment(
-  first_name,
-  last_name,
-  email,
-  event_name,
-  event_logo,
-  order_ref_no,
-  orderlist,
-  submissionlist,
-  payment_information
-) {
-  try {
-    const user = process.env.EMAIL_USER;
-    const pass = process.env.PASSWORD;
+async function getEventDetails(eventid) {
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT * FROM event_details WHERE id = ? LIMIT 1`;
 
-    const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST, // Your SMTP server
-        port: process.env.SMTP_PORT || 587, // Default SMTP port
-        secure: process.env.SMTP_SECURE === "true", // Use TLS if true
-        auth: {
-          user: process.env.SMTP_USER, // SMTP username
-          pass: process.env.SMTP_PASS, // SMTP password
-        },
-        tls: {
-          rejectUnauthorized: false, // Prevent self-signed certificate errors
-        },
-      });
-      
-
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Payment Reminder</title>
-          <style>
-              body {
-                  font-family: Arial, sans-serif;
-                  background-color: #f4f4f4;
-                  margin: 0;
-                  padding: 0;
-              }
-              h1{
-                  color: #333;
-              }
-              .container {
-                  max-width: 600px;
-                  margin: 0 auto;
-                  padding: 20px;
-                  background-color: #fff;
-                  border: 1px solid #ccc;
-                  border-radius: 10px;
-              }
-              .message {
-                  margin-bottom: 15px;
-                  color: #333;
-              }
-              .cta-button {
-                  display: inline-block;
-                  background-color: #c32728;
-                  color: white !important;
-                  padding: 10px 20px;
-                  text-align: center;
-                  border-radius: 5px;
-                  text-decoration: none;
-                  font-weight: bold;
-              }
-
-              .cta-button:hover,
-              .cta-button:visited,
-              .cta-button:focus,
-              .cta-button:active {
-                  background-color: #c32728;
-                  color: white !important;
-              }
-          </style>
-      </head>
-      <body>
-          <div class="container">
-              <div class="header">
-                  <img src="https://judgify-api.phanomprofessionals.com/uploads/${event_logo}" alt="${event_name} Logo" style="max-width: 100%; height: auto;">
-                  <h1>${event_name}</h1>
-              </div>
-              <p class="message">Dear ${first_name} ${last_name},</p>
-              <p class="message">Your payment for order ID: <strong>${order_ref_no}</strong> is currently pending. Please click the button below to complete the payment process:</p>
-              <a href="https://your-payment-link.com" class="cta-button">Complete Payment</a>
-
-              <h2>Order Info</h2>
-              <p class="message">${orderlist}</p>
-
-              <h2>Nomination Details</h2>
-              <p class="message">${submissionlist}</p>
-
-            
-              <p class="message">If you have any questions, feel free to reach out.</p>
-
-              <p class="message">Best regards,</p>
-              <p class="message"><strong>${event_name} Team</strong></p>
-          </div>
-      </body>
-      </html>
-    `;
-
-    const mailOptions = {
-      from: user,
-      to: email,
-      subject: `Payment Pending for Order ID: ${order_ref_no}`,
-      html: htmlContent,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    // console.log('Email sent to ' + email + ': ' + info.response); 
-
-  } catch (error) {
-    console.error('Error sending email to ' + email + ':', error);
-  }
+    db.query(sql, [eventid], (err, results) => {
+      if (err) return reject(err);
+      resolve(results[0]);
+    });
+  });
 }
 
-export default sendPendingPayment;
+
+async function getUserDetails(userId) {
+  return new Promise((resolve, reject) => {
+    const sql = `SELECT * FROM user WHERE id = ? LIMIT 1`;
+
+    db.query(sql, [userId], (err, results) => {
+      if (err) return reject(err);
+      resolve(results[0]);
+    });
+  });
+}
+// 🔥 replace variables
+function replaceVariables(template, data) {
+  return template.replace(/{{(.*?)}}/g, (_, key) => {
+    return data[key.trim()] || "";
+  });
+}
+async function sendPendingPaymentaaaaaa(order, eventid, userId) {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    // 🔥 GET EVENT
+    const event = await getEventDetails(eventid);
+    if (!event) throw new Error("Event not found");
+
+    // 🔥 GET USER
+    const user = await getUserDetails(userId);
+    if (!user) throw new Error("User not found");
+
+    // 🔥 GET TEMPLATE
+    let template = await getTemplateByName(
+      "Pending Payment Notification",
+      eventid
+    );
+
+    // 🔥 FALLBACK
+    if (!template) {
+      template = {
+        subject: "Payment Pending - {{event.name}}",
+        content: `
+          <p>Dear {{user.firstname}} {{user.lastname}},</p>
+          <p>Your payment is pending for order <b>{{order.order_ref_no}}</b></p>
+          <span style="background:#c32728;color:#fff;padding:10px 20px;">
+            Complete Payment
+          </span>
+        `,
+      };
+    }
+
+    // 🔥 VARIABLES (NOW FULLY DYNAMIC)
+    const variableData = {
+      "user.firstname": user.first_name,
+      "user.lastname": user.last_name,
+
+      "event.name": event.event_name,
+      "event.logo": `https://profession-mobility-included-advertisement.trycloudflare.com/uploads/${event.event_logo}`,
+
+      "order.order_ref_no": order.entry_id || order.order_ref_no,
+      "order.orderlist": order.orderlist || "",
+      "order.submissionlist": order.submissionlist || "",
+    };
+
+    const processedContent = replaceVariables(template.content, variableData);
+    const finalSubject = replaceVariables(template.subject, variableData);
+
+    // 🔥 DESIGN SAME (NO CHANGE)
+    const finalHtml = `
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:Arial,sans-serif;">
+
+  <div style="padding:40px 0;">
+    
+    <div style="max-width:650px;margin:auto;background:#fff;border-radius:12px;overflow:hidden;">
+      
+      <div style="height:120px;background:linear-gradient(to right,#2ec4b6,#66bb2a);"></div>
+
+      <div style="text-align:center;margin-top:-50px;">
+        <img src="${variableData["event.logo"]}"
+             style="width:90px;height:90px;border-radius:50%;background:#fff;padding:5px;" />
+      </div>
+
+      <div style="padding:30px;">
+        
+        <h2 style="text-align:center;">
+          ${variableData["event.name"]}
+        </h2>
+
+        ${processedContent}
+
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
+`;
+
+    await transporter.sendMail({
+      from: `"Awards Nomination" <${process.env.SMTP_USER}>`,
+      to: user.email, // 🔥 FROM DB
+      subject: finalSubject,
+      html: finalHtml,
+    });
+
+    console.log("Pending Payment Email sent ✅");
+
+  } catch (error) {
+    console.error("Pending Payment Email error ❌:", error);
+  }
+}
+export default sendPendingPaymentaaaaaa;

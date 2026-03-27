@@ -1,5 +1,5 @@
 import express from "express";
-import { createNewTemplate, deleteTemplateData, getTemplate, getTemplates, updateTemplateData } from "../controller/template.controller.js";
+import { createNewTemplate, deleteTemplateData, getTemplate, getTemplateByNameController, getTemplates, updateTemplateData } from "../controller/template.controller.js";
 
 const router = express.Router();
 
@@ -18,4 +18,7 @@ router.put("/:id", updateTemplateData);
 // DELETE
 router.delete("/:id", deleteTemplateData);
 
+
+
+router.get("/by-name", getTemplateByNameController);
 export default router;
